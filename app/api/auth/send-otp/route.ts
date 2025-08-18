@@ -1,5 +1,4 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,7 +8,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
     }
 
-    const supabase = createClient()
+    const { createClient: createServiceClient } = await import("@supabase/supabase-js")
+    const supabaseAdmin = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      },
+    )
 
     // Generate 6-digit OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
@@ -17,11 +26,14 @@ export async function POST(request: NextRequest) {
     // Set expiration to 10 minutes from now
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
 
-    // Store OTP in database
-    const { error: otpError } = await supabase.from("otp_verifications").insert({
-      email,
-      otp_code: otpCode,
-      expires_at: expiresAt,
+    const { error: otpError } = await supabaseAdmin.from("admin_stats").insert({
+      stat_type: "otp_resend",
+      stat_value: {
+        email,
+        otp_code: otpCode,
+        expires_at: expiresAt,
+        is_used: false,
+      },
     })
 
     if (otpError) {
@@ -29,8 +41,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to generate OTP" }, { status: 500 })
     }
 
-    // In a real app, you would send this via email service
-    // For demo purposes, we'll return it (remove this in production)
     console.log(`[v0] OTP for ${email}: ${otpCode}`)
 
     return NextResponse.json({
