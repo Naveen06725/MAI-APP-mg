@@ -23,6 +23,7 @@ import {
   PieChart,
   RefreshCw,
   Database,
+  UserX,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { logout } from "@/lib/actions"
@@ -67,6 +68,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [filterPeriod, setFilterPeriod] = useState("30")
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null)
+  const [clearingUsers, setClearingUsers] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -106,6 +108,54 @@ export default function AdminDashboard() {
       console.error("Error fetching stats:", error)
     } finally {
       setStatsLoading(false)
+    }
+  }
+
+  const clearAllUsers = async () => {
+    const nonAdminUsers = users.filter((user) => !user.is_admin)
+
+    if (nonAdminUsers.length === 0) {
+      alert("No non-admin users to clear.")
+      return
+    }
+
+    const confirmMessage = `Are you sure you want to delete ALL ${nonAdminUsers.length} non-admin users? This action cannot be undone.`
+    if (!confirm(confirmMessage)) return
+
+    setClearingUsers(true)
+    console.log("[v0] Starting clear all users operation")
+
+    try {
+      const response = await fetch("/api/admin/clear-users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log(`[v0] Successfully cleared ${result.deletedCount} users`)
+        alert(`Successfully deleted ${result.deletedCount} non-admin users.`)
+
+        // Refresh the users list and stats
+        await fetchUsers()
+        await fetchStats()
+      } else {
+        console.error("[v0] Clear users failed:", result.error)
+        alert(`Failed to clear users: ${result.error}`)
+      }
+
+      if (result.errors && result.errors.length > 0) {
+        console.warn("[v0] Some errors occurred:", result.errors)
+        alert(`Some errors occurred during cleanup:\n${result.errors.join("\n")}`)
+      }
+    } catch (error) {
+      console.error("[v0] Error clearing users:", error)
+      alert("Failed to clear users. Please try again.")
+    } finally {
+      setClearingUsers(false)
     }
   }
 
@@ -275,7 +325,7 @@ export default function AdminDashboard() {
               </Card>
 
               <Card className="bg-blue-800/50 border-blue-600/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardHeader>
                   <CardTitle className="text-sm font-medium text-blue-100">Social Posts</CardTitle>
                   <Activity className="h-4 w-4 text-pink-400" />
                 </CardHeader>
@@ -453,7 +503,7 @@ export default function AdminDashboard() {
                           </div>
                           <div>
                             <p className="text-white font-medium">@{user.username}</p>
-                            <p className="text-blue-300 text-sm">
+                            <p className="text-sm text-blue-200">
                               {user.meetings} meetings • {user.posts} posts
                             </p>
                           </div>
@@ -505,15 +555,26 @@ export default function AdminDashboard() {
                 <CardTitle className="text-white">User Management</CardTitle>
                 <CardDescription className="text-blue-200">View and manage all platform users</CardDescription>
 
-                {/* Search */}
-                <div className="flex items-center space-x-2 mt-4">
-                  <Search className="h-4 w-4 text-blue-400" />
-                  <Input
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-blue-900/50 border-blue-600/50 text-white placeholder-blue-300"
-                  />
+                {/* Search and Actions */}
+                <div className="flex items-center justify-between space-x-4 mt-4">
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Search className="h-4 w-4 text-blue-400" />
+                    <Input
+                      placeholder="Search users..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="bg-blue-900/50 border-blue-600/50 text-white placeholder-blue-300"
+                    />
+                  </div>
+                  <Button
+                    onClick={clearAllUsers}
+                    disabled={clearingUsers || users.filter((u) => !u.is_admin).length === 0}
+                    variant="outline"
+                    className="border-red-600/50 text-red-200 hover:bg-red-700/50 bg-transparent"
+                  >
+                    <UserX className="h-4 w-4 mr-2" />
+                    {clearingUsers ? "Clearing..." : "Clear All Users (Keep Admin)"}
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent>

@@ -244,7 +244,6 @@ export async function enhancedSignUp(formData: FormData) {
     },
   })
 
-  // Check for existing username, email, and mobile number using admin client
   const { data: existingUsername } = await supabaseAdmin
     .from("profiles")
     .select("username")
@@ -272,6 +271,16 @@ export async function enhancedSignUp(formData: FormData) {
   }
 
   try {
+    const { data: existingAuthUser } = await supabaseAdmin.auth.admin.listUsers()
+    const userWithEmail = existingAuthUser.users.find((user) => user.email === email)
+
+    if (userWithEmail) {
+      console.log("[v0] Found existing auth user, deleting:", userWithEmail.id)
+      await supabaseAdmin.auth.admin.deleteUser(userWithEmail.id)
+      // Also delete any existing profile
+      await supabaseAdmin.from("profiles").delete().eq("id", userWithEmail.id)
+    }
+
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
@@ -290,7 +299,7 @@ export async function enhancedSignUp(formData: FormData) {
     console.log("[v0] Auth user created successfully with ID:", authData.user.id)
 
     const profileData = {
-      id: authData.user.id, // Use auth user ID instead of random UUID
+      id: authData.user.id,
       email: email,
       username: username,
       first_name: firstName,
@@ -311,28 +320,22 @@ export async function enhancedSignUp(formData: FormData) {
 
     const { data: insertedProfile, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .insert(profileData)
+      .upsert(profileData, {
+        onConflict: "id",
+        ignoreDuplicates: false,
+      })
       .select()
       .single()
 
     if (profileError) {
       console.log("[v0] Profile creation error:", profileError.message)
-
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-
-      if (profileError.message.includes('duplicate key value violates unique constraint "unique_username"')) {
-        return { error: "Username already exists. Please choose a different username." }
-      }
-      if (profileError.message.includes('duplicate key value violates unique constraint "unique_email"')) {
-        return { error: "Email already registered. Please use a different email address." }
-      }
-      if (profileError.message.includes('duplicate key value violates unique constraint "unique_mobile_number"')) {
-        return { error: "Mobile number already registered. Please use a different mobile number." }
-      }
       return { error: "Account creation failed. Please try again." }
     }
 
     console.log("[v0] Profile created successfully:", insertedProfile)
+
+    await supabaseAdmin.from("admin_stats").delete().eq("stat_type", "otp_verification").eq("stat_value->email", email)
 
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
@@ -450,7 +453,15 @@ export async function enhancedSignIn(formData: FormData) {
 
   console.log("[v0] Looking up user profile for username:", username)
 
-  const { data: profile, error: profileError } = await supabase
+  const { createClient } = await import("@supabase/supabase-js")
+  const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  })
+
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
     .select("email, username, is_admin, first_name, last_name")
     .eq("username", username)

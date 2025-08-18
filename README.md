@@ -7,11 +7,12 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 
 ### 1. Authentication System
 - **User Registration**: Complete user onboarding with personal details and address information
+- **OTP Email Verification**: 6-digit PIN sent to email for account verification
 - **Username-based Login**: Secure authentication using username/password combination
 - **Admin Access**: Hardcoded admin credentials (Username: Admin, Password: Happy@152624)
 - **Session Management**: 8-minute inactivity timeout for all users
 - **Field Validation**: Real-time validation for unique usernames, emails, and mobile numbers
-- **OTP Verification**: Email-based one-time password verification for new registrations
+- **Auto-Login**: Automatic login after successful OTP verification
 
 ### 2. Smart Meeting System
 - **Meeting Creation**: Users can create meetings with title, description, and participant management
@@ -54,23 +55,13 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 
 ### 7. Admin Dashboard
 - **Real-time Analytics**: Live statistics with 30-second refresh intervals
-- **Meeting Statistics**: 
-  - Number of live meetings
-  - Total meetings created
-  - Meeting frequency analytics
-  - Average meeting duration
-- **User Analytics**:
-  - Total registered users
-  - User growth trends
-  - Active user metrics
-  - User engagement statistics
-- **Graphical Representations**:
-  - Line charts for user growth
-  - Bar charts for meeting frequency
-  - Pie charts for user distribution
-  - Activity heatmaps
-- **Advanced Filtering**: Date range, user type, and activity filters
-- **User Management**: View, edit, and manage all user profiles
+- **Database Management**: Complete CRUD operations on all database tables
+- **User Management**: View, edit, delete, and manage all user profiles
+- **SQL Query Interface**: Execute custom SQL queries directly from the dashboard
+- **Data Cleanup**: Clear test data and manage database records
+- **User Analytics**: Comprehensive user statistics and growth metrics
+- **Meeting Analytics**: Live meeting statistics and historical data
+- **Graphical Representations**: Charts and graphs for data visualization
 
 ## Application Architecture
 
@@ -84,7 +75,7 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 - **likes**: Post interaction tracking
 - **comments**: Post comment system
 - **follows**: User relationship management
-- **admin_stats**: Platform analytics and metrics
+- **admin_stats**: Platform analytics, metrics, and temporary OTP storage
 
 ### Technology Stack
 - **Frontend**: Next.js 15 with App Router, React, TypeScript
@@ -103,10 +94,12 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 2. Fills out comprehensive form with personal and address details
 3. Real-time validation checks for unique username, email, mobile
 4. Password confirmation validation
-5. OTP verification sent to email
-6. User enters 6-digit verification code
-7. Account created and profile stored in database
-8. Automatic redirect to login page
+5. Account created immediately in database
+6. 6-digit OTP sent to user's email address
+7. User redirected to OTP verification screen (`/auth/verify-otp`)
+8. User enters 6-digit verification code
+9. System creates Supabase auth user and automatically logs in
+10. User redirected to dashboard with full platform access
 
 ### User Login Flow
 1. User accesses login page (`/auth/login`)
@@ -168,11 +161,22 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 6. Meeting statistics and trends analysis
 7. Export capabilities for reporting
 
+### Admin Database Management Flow
+1. Admin accesses Database tab in admin dashboard
+2. Views all database tables with real-time data
+3. Can edit individual records inline
+4. Delete records with confirmation dialogs
+5. Execute custom SQL queries for advanced operations
+6. Clear all test data while preserving admin account
+7. Export data and manage database schema
+
 ## Security Features
+- **OTP Verification**: Email-based one-time password for secure account verification
 - **Session Management**: Automatic logout after 8 minutes of inactivity
 - **Input Validation**: Comprehensive form validation and sanitization
 - **Unique Constraints**: Database-level uniqueness for usernames, emails, mobile
 - **Admin Protection**: Hardcoded admin credentials with special handling
+- **Database Security**: Row-level security policies and service role permissions
 - **CSRF Protection**: Next.js built-in CSRF protection for forms
 - **Secure Cookies**: HttpOnly, Secure, and SameSite cookie attributes
 
@@ -239,6 +243,9 @@ POSTGRES_USER=your_postgres_user
 POSTGRES_PASSWORD=your_postgres_password
 POSTGRES_DATABASE=your_postgres_database
 POSTGRES_HOST=your_postgres_host
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 \`\`\`
 
 #### 4. Database Setup
@@ -367,13 +374,16 @@ npm run dev
 
 ### Testing Checklist
 - [ ] **User Registration**: Create new account with unique details
+- [ ] **OTP Verification**: Verify email with 6-digit code
+- [ ] **Auto-Login**: Confirm automatic login after OTP verification
 - [ ] **User Login**: Login with created credentials
 - [ ] **Admin Access**: Login with Admin/Happy@152624
+- [ ] **Admin Database**: Test database management features
 - [ ] **Meeting Creation**: Create and join meetings
 - [ ] **Voice Assistant**: Test AI voice interactions
 - [ ] **Code Editor**: Create and save code projects
 - [ ] **Social Features**: Create posts, like, comment
-- [ ] **Database Management**: Admin database operations
+- [ ] **Home Navigation**: Test home button functionality
 - [ ] **Mobile Responsiveness**: Test on mobile devices
 
 ### Test Data
@@ -432,8 +442,9 @@ pm2 start npm --name "mai-platform" -- start
 \`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=          # Supabase project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase anonymous key
-SUPABASE_SERVICE_ROLE_KEY=         # Supabase service role key
+SUPABASE_SERVICE_ROLE_KEY=         # Supabase service role key (required for admin operations)
 GROQ_API_KEY=                      # Groq AI API key
+NEXT_PUBLIC_SITE_URL=              # Your application URL (for OTP verification)
 \`\`\`
 
 ### Optional Variables
@@ -457,10 +468,12 @@ POSTGRES_HOST=                    # Database host
 ## 📞 Support & Troubleshooting
 
 ### Common Issues
-1. **Database Connection**: Check Supabase credentials and network access
-2. **AI Features**: Verify Groq API key and rate limits
-3. **Authentication**: Ensure redirect URLs match deployment domain
-4. **Build Errors**: Check Node.js version compatibility (18+)
+1. **OTP Not Received**: Check email spam folder and SMTP configuration
+2. **Database Connection**: Check Supabase credentials and network access
+3. **Admin Operations**: Ensure service role key is configured correctly
+4. **AI Features**: Verify Groq API key and rate limits
+5. **Authentication**: Ensure redirect URLs match deployment domain
+6. **Build Errors**: Check Node.js version compatibility (18+)
 
 ### Getting Help
 - **Documentation**: Refer to this README and code comments
