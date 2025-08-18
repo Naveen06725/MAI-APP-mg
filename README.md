@@ -1,91 +1,49 @@
 # MAI Platform - Comprehensive Application Documentation
 
 ## Overview
-MAI Platform is a comprehensive collaboration and productivity platform that combines smart meeting management, AI voice interactions, code collaboration, and social media features into a unified experience.
+MAI Platform is a modern web application that combines user authentication, database management, and administrative tools into a unified experience. Built with Next.js 15, Supabase, and modern web technologies.
 
 ## Core Functionalities
 
 ### 1. Authentication System
 - **User Registration**: Complete user onboarding with personal details and address information
-- **OTP Email Verification**: 6-digit PIN sent to email for account verification
+- **Instant Account Creation**: No email verification required - users can login immediately after registration
 - **Username-based Login**: Secure authentication using username/password combination
 - **Admin Access**: Hardcoded admin credentials (Username: Admin, Password: Happy@152624)
 - **Session Management**: 8-minute inactivity timeout for all users
 - **Field Validation**: Real-time validation for unique usernames, emails, and mobile numbers
-- **Auto-Login**: Automatic login after successful OTP verification
 
-### 2. Smart Meeting System
-- **Meeting Creation**: Users can create meetings with title, description, and participant management
-- **Live Meeting Management**: Real-time meeting status tracking (scheduled, active, completed)
-- **Participant Controls**: Join/leave functionality with participant tracking
-- **Host Controls**: Meeting start/end capabilities for meeting hosts
-- **Meeting Dashboard**: Overview of all user meetings with status indicators
-
-### 3. AI Voice Integration
-- **Voice Recording**: Web Speech API integration for voice input
-- **AI Processing**: Groq-powered AI responses using Llama models
-- **Text-to-Speech**: Automated voice responses from AI assistant
-- **Conversation History**: Database storage of all voice interactions
-- **Meeting Integration**: Voice assistant available during meetings
-- **Dedicated Voice Page**: Standalone voice interaction interface
-
-### 4. Code Editor & Collaboration
-- **Monaco Editor**: Full-featured code editor with syntax highlighting
-- **Multi-language Support**: JavaScript, TypeScript, Python, HTML, CSS, and more
-- **Project Management**: Create, save, and manage code projects
-- **Real-time Collaboration**: Share projects with other users
-- **Auto-save**: Automatic project saving every 30 seconds
-- **Code Execution**: Run code directly in the browser environment
-- **File Management**: Upload and manage project files
-
-### 5. Social Media Platform
-- **News Feed**: Facebook-style social feed with posts and interactions
-- **Reels System**: Instagram-style vertical video feed
-- **Post Creation**: Text, image, and video post creation
-- **Social Interactions**: Like, comment, and share functionality
-- **User Following**: Follow/unfollow system for social connections
-- **Media Upload**: Support for images, videos, and GIFs
-
-### 6. Media Sharing & Camera Features
-- **Camera Integration**: Direct photo and video capture from device camera
-- **File Upload**: Drag-and-drop file upload with multiple format support
-- **Emoji & GIF Support**: Rich media integration across all features
-- **Cross-platform Sharing**: Media sharing across meetings, social posts, and code projects
-- **Real-time Media**: Live camera feeds during meetings
-
-### 7. Admin Dashboard
-- **Real-time Analytics**: Live statistics with 30-second refresh intervals
+### 2. Admin Dashboard
+- **Real-time Analytics**: Live statistics with comprehensive user and system metrics
 - **Database Management**: Complete CRUD operations on all database tables
 - **User Management**: View, edit, delete, and manage all user profiles
 - **SQL Query Interface**: Execute custom SQL queries directly from the dashboard
 - **Data Cleanup**: Clear test data and manage database records
 - **User Analytics**: Comprehensive user statistics and growth metrics
-- **Meeting Analytics**: Live meeting statistics and historical data
 - **Graphical Representations**: Charts and graphs for data visualization
+- **Email Confirmation Tools**: Admin can confirm user emails when needed
+
+### 3. Navigation & UI
+- **Home Button**: Consistent home navigation icon on every screen
+- **Responsive Design**: Mobile-first approach with optimized layouts
+- **Modern UI**: Clean, professional interface with Tailwind CSS
+- **Intuitive Navigation**: Easy-to-use interface for all user types
 
 ## Application Architecture
 
 ### Database Schema
 - **profiles**: User information with personal details and admin flags
 - **meetings**: Meeting records with host, participants, and status
-- **meeting_participants**: Join/leave activity tracking
-- **voice_interactions**: AI conversation logs and history
-- **code_projects**: Generated code storage and project management
 - **posts**: Social media posts with content and metadata
-- **likes**: Post interaction tracking
-- **comments**: Post comment system
-- **follows**: User relationship management
-- **admin_stats**: Platform analytics, metrics, and temporary OTP storage
+- **admin_stats**: Platform analytics and metrics storage
 
 ### Technology Stack
 - **Frontend**: Next.js 15 with App Router, React, TypeScript
-- **Styling**: Tailwind CSS v4 with custom blue gradient theme
-- **Database**: Supabase (PostgreSQL) with real-time subscriptions
+- **Styling**: Tailwind CSS v4 with modern design system
+- **Database**: Supabase (PostgreSQL) with real-time capabilities
 - **Authentication**: Supabase Auth with custom session management
-- **AI Integration**: Groq API with Llama models
-- **Code Editor**: Monaco Editor with multi-language support
 - **Charts**: Recharts with shadcn/ui chart components
-- **Media**: Web APIs for camera, speech recognition, and file handling
+- **Icons**: Lucide React for consistent iconography
 
 ## End-to-End Application Flow
 
@@ -94,72 +52,22 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 2. Fills out comprehensive form with personal and address details
 3. Real-time validation checks for unique username, email, mobile
 4. Password confirmation validation
-5. Account created immediately in database
-6. 6-digit OTP sent to user's email address
-7. User redirected to OTP verification screen (`/auth/verify-otp`)
-8. User enters 6-digit verification code
-9. System creates Supabase auth user and automatically logs in
-10. User redirected to dashboard with full platform access
+5. Account created immediately with confirmed email status
+6. User can login immediately with their credentials
+7. Redirect to user dashboard with platform access
 
 ### User Login Flow
 1. User accesses login page (`/auth/login`)
 2. Enters username and password
 3. System validates credentials against database
 4. Session cookie created with 8-minute inactivity timeout
-5. Redirect to user dashboard with full platform access
+5. Redirect to user dashboard
 
 ### Admin Login Flow
 1. Admin enters hardcoded credentials (Admin/Happy@152624)
 2. System recognizes admin login and bypasses database validation
 3. Admin session cookie created
 4. Redirect to admin dashboard with analytics and user management
-
-### Meeting Creation & Management Flow
-1. User navigates to meetings section in dashboard
-2. Clicks "Create Meeting" and fills out meeting details
-3. Meeting record created in database with "scheduled" status
-4. Participants can join meeting using meeting ID
-5. Host starts meeting, status changes to "active"
-6. Real-time participant tracking and meeting controls
-7. Host ends meeting, status changes to "completed"
-8. Meeting history and analytics updated
-
-### AI Voice Interaction Flow
-1. User clicks voice assistant button (available in meetings or dedicated page)
-2. Web Speech API captures voice input
-3. Audio converted to text and sent to Groq AI
-4. AI processes request and generates response
-5. Response converted to speech using Text-to-Speech API
-6. Interaction logged in database for history tracking
-7. User can continue conversation or end session
-
-### Code Collaboration Flow
-1. User accesses code editor from dashboard
-2. Creates new project or opens existing project
-3. Monaco Editor loads with syntax highlighting
-4. User writes/edits code with auto-save every 30 seconds
-5. Project can be shared with other users via share link
-6. Real-time collaboration allows multiple users to edit
-7. Code can be executed directly in browser
-8. Project history and versions maintained
-
-### Social Media Flow
-1. User creates post with text, images, or videos
-2. Post published to news feed visible to followers
-3. Other users can like, comment, and share posts
-4. Reels can be created with vertical video format
-5. Social interactions tracked and displayed
-6. User profiles show post history and social connections
-7. Following system enables personalized content feeds
-
-### Admin Analytics Flow
-1. Admin accesses dashboard with comprehensive analytics
-2. Real-time data refreshes every 30 seconds
-3. Charts and graphs display platform usage metrics
-4. Filtering options allow detailed analysis
-5. User management tools for profile editing
-6. Meeting statistics and trends analysis
-7. Export capabilities for reporting
 
 ### Admin Database Management Flow
 1. Admin accesses Database tab in admin dashboard
@@ -168,10 +76,10 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 4. Delete records with confirmation dialogs
 5. Execute custom SQL queries for advanced operations
 6. Clear all test data while preserving admin account
-7. Export data and manage database schema
+7. Manage user accounts and confirm emails when needed
 
 ## Security Features
-- **OTP Verification**: Email-based one-time password for secure account verification
+- **Instant Authentication**: Streamlined signup process without email verification delays
 - **Session Management**: Automatic logout after 8 minutes of inactivity
 - **Input Validation**: Comprehensive form validation and sanitization
 - **Unique Constraints**: Database-level uniqueness for usernames, emails, mobile
@@ -181,23 +89,10 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 - **Secure Cookies**: HttpOnly, Secure, and SameSite cookie attributes
 
 ## Performance Optimizations
-- **Real-time Updates**: Efficient polling and WebSocket connections
-- **Auto-save**: Prevents data loss with automatic saving
-- **Lazy Loading**: Components and images loaded on demand
-- **Caching**: Strategic caching for frequently accessed data
+- **Real-time Updates**: Efficient polling for dashboard analytics
 - **Responsive Design**: Mobile-first approach with optimized layouts
-
-## Deployment & Configuration
-- **Environment Variables**: Comprehensive environment variable setup
-- **Database Migrations**: SQL scripts for schema updates
-- **Integration Setup**: Supabase and Groq API configuration
-- **Build Optimization**: Next.js production build optimizations
-
-## Support & Maintenance
-- **Error Handling**: Comprehensive error catching and user feedback
-- **Logging**: Detailed logging for debugging and monitoring
-- **Analytics**: Built-in analytics for usage tracking
-- **Backup**: Database backup and recovery procedures
+- **Lazy Loading**: Components loaded on demand
+- **Caching**: Strategic caching for frequently accessed data
 
 ## 🚀 Getting Started
 
@@ -205,7 +100,6 @@ MAI Platform is a comprehensive collaboration and productivity platform that com
 - Node.js 18+ and npm/yarn
 - Git for version control
 - Supabase account for database
-- Groq API key for AI features
 
 ### Local Development Setup
 
@@ -230,10 +124,6 @@ Create a `.env.local` file in the root directory:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-
-# Groq AI Configuration
-GROQ_API_KEY=your_groq_api_key
 
 # Database Configuration (Auto-generated by Supabase)
 POSTGRES_URL=your_postgres_connection_string
@@ -255,7 +145,7 @@ Run the SQL migration scripts in your Supabase dashboard:
 # - scripts/create_profiles_table.sql
 # - scripts/create_meetings_table.sql
 # - scripts/create_social_tables.sql
-# - scripts/update_profiles_table.sql
+# - scripts/cleanup_otp_data.sql
 \`\`\`
 
 #### 5. Run Development Server
@@ -286,7 +176,6 @@ Visit `http://localhost:3000` to see the application.
 2. **Configure Environment Variables**:
    - Go to Vercel Dashboard → Project Settings → Environment Variables
    - Add all environment variables from your `.env.local`
-   - Update `NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL` to your Vercel domain
 
 3. **Deploy**:
    \`\`\`bash
@@ -374,17 +263,14 @@ npm run dev
 
 ### Testing Checklist
 - [ ] **User Registration**: Create new account with unique details
-- [ ] **OTP Verification**: Verify email with 6-digit code
-- [ ] **Auto-Login**: Confirm automatic login after OTP verification
+- [ ] **Instant Login**: Confirm immediate login capability after registration
 - [ ] **User Login**: Login with created credentials
 - [ ] **Admin Access**: Login with Admin/Happy@152624
 - [ ] **Admin Database**: Test database management features
-- [ ] **Meeting Creation**: Create and join meetings
-- [ ] **Voice Assistant**: Test AI voice interactions
-- [ ] **Code Editor**: Create and save code projects
-- [ ] **Social Features**: Create posts, like, comment
+- [ ] **User Management**: Test user editing and deletion
 - [ ] **Home Navigation**: Test home button functionality
 - [ ] **Mobile Responsiveness**: Test on mobile devices
+- [ ] **Session Timeout**: Test 8-minute inactivity logout
 
 ### Test Data
 Use these test credentials for development:
@@ -443,15 +329,12 @@ pm2 start npm --name "mai-platform" -- start
 NEXT_PUBLIC_SUPABASE_URL=          # Supabase project URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Supabase anonymous key
 SUPABASE_SERVICE_ROLE_KEY=         # Supabase service role key (required for admin operations)
-GROQ_API_KEY=                      # Groq AI API key
-NEXT_PUBLIC_SITE_URL=              # Your application URL (for OTP verification)
+NEXT_PUBLIC_SITE_URL=              # Your application URL
 \`\`\`
 
 ### Optional Variables
 \`\`\`env
-NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=  # Development redirect URL
-NEXT_PUBLIC_APP_URL=                    # Production app URL
-NODE_ENV=                               # Environment (development/production)
+NODE_ENV=                          # Environment (development/production)
 \`\`\`
 
 ### Database Variables (Auto-configured)
@@ -465,15 +348,208 @@ POSTGRES_DATABASE=                # Database name
 POSTGRES_HOST=                    # Database host
 \`\`\`
 
+## 🛠️ IDE Setup Instructions
+
+### Visual Studio Code (Recommended)
+
+#### Installation & Setup
+1. **Download VS Code**: Get it from [code.visualstudio.com](https://code.visualstudio.com/)
+2. **Install Essential Extensions**:
+   \`\`\`bash
+   # Install via VS Code Extensions marketplace or command palette
+   - ES7+ React/Redux/React-Native snippets
+   - TypeScript Importer
+   - Tailwind CSS IntelliSense
+   - Prettier - Code formatter
+   - ESLint
+   - Auto Rename Tag
+   - Bracket Pair Colorizer
+   - GitLens
+   \`\`\`
+
+#### Running MAI Platform in VS Code
+1. **Open Project**:
+   \`\`\`bash
+   code MAI-APP-mg
+   # or open VS Code and File → Open Folder
+   \`\`\`
+
+2. **Install Dependencies**:
+   \`\`\`bash
+   # Use VS Code integrated terminal (Ctrl+`)
+   npm install
+   \`\`\`
+
+3. **Configure Environment**:
+   - Create `.env.local` file in root directory
+   - Copy environment variables from setup section above
+
+4. **Run Development Server**:
+   \`\`\`bash
+   npm run dev
+   \`\`\`
+
+5. **VS Code Features**:
+   - **Debugging**: Set breakpoints and use F5 to debug
+   - **IntelliSense**: Auto-completion for TypeScript and React
+   - **Git Integration**: Built-in source control
+   - **Terminal**: Integrated terminal for npm commands
+   - **Extensions**: Rich ecosystem for web development
+
+#### VS Code Workspace Settings
+Create `.vscode/settings.json` in project root:
+\`\`\`json
+{
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "tailwindCSS.experimental.classRegex": [
+    ["cva\$$([^)]*)\$$", "[\"'`]([^\"'`]*).*?[\"'`]"],
+    ["cx\$$([^)]*)\$$", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
+  ]
+}
+\`\`\`
+
+### Eclipse IDE Setup
+
+#### Prerequisites
+1. **Download Eclipse IDE for Web and JavaScript Developers**
+2. **Install Required Plugins**:
+   - Wild Web Developer (HTML, CSS, JS, TS support)
+   - Node.js Development Tools
+   - Git integration (usually built-in)
+
+#### Installation Steps
+1. **Install Eclipse**:
+   - Download from [eclipse.org](https://www.eclipse.org/downloads/)
+   - Choose "Eclipse IDE for Web and JavaScript Developers"
+
+2. **Install Wild Web Developer Plugin**:
+   - Help → Eclipse Marketplace
+   - Search for "Wild Web Developer"
+   - Install and restart Eclipse
+
+3. **Configure Node.js**:
+   - Window → Preferences → JavaScript → Node.js
+   - Set Node.js installation path
+   - Verify npm is detected
+
+#### Running MAI Platform in Eclipse
+1. **Import Project**:
+   \`\`\`bash
+   # Method 1: Import existing project
+   File → Import → General → Existing Projects into Workspace
+   Browse to MAI-APP-mg folder
+   
+   # Method 2: Clone from Git
+   File → Import → Git → Projects from Git
+   Clone URI: https://github.com/your-username/MAI-APP-mg.git
+   \`\`\`
+
+2. **Project Setup**:
+   - Right-click project → Properties
+   - Project Facets → Enable JavaScript
+   - Build Path → Configure build path for Node.js
+
+3. **Environment Configuration**:
+   - Create `.env.local` file in project root
+   - Copy environment variables from setup section
+
+4. **Run Application**:
+   \`\`\`bash
+   # Option 1: Use Eclipse terminal
+   Window → Show View → Terminal
+   cd /path/to/MAI-APP-mg
+   npm install
+   npm run dev
+   
+   # Option 2: External terminal
+   Open system terminal in project directory
+   npm install
+   npm run dev
+   \`\`\`
+
+5. **Eclipse Development Features**:
+   - **File Explorer**: Project Explorer for navigation
+   - **Syntax Highlighting**: JavaScript/TypeScript syntax support
+   - **Git Integration**: Team → Git for version control
+   - **Terminal**: Integrated terminal for npm commands
+   - **Debugging**: Basic debugging support for Node.js
+
+#### Eclipse Limitations for This Project
+- **Limited TypeScript Support**: Not as robust as VS Code
+- **React IntelliSense**: Limited React-specific features
+- **Extension Ecosystem**: Smaller plugin ecosystem for modern web dev
+- **Performance**: Can be slower with large JavaScript projects
+
+### IDE Comparison for MAI Platform
+
+| Feature | VS Code | Eclipse |
+|---------|---------|---------|
+| TypeScript Support | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| React IntelliSense | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| Next.js Integration | ⭐⭐⭐⭐⭐ | ⭐⭐ |
+| Debugging | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Git Integration | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| Performance | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| Learning Curve | ⭐⭐⭐⭐ | ⭐⭐ |
+| Extension Ecosystem | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+
+### Alternative IDEs
+
+#### WebStorm (JetBrains)
+- **Pros**: Professional IDE, excellent TypeScript support, advanced refactoring
+- **Cons**: Paid license required
+- **Setup**: Import project, configure Node.js interpreter, run `npm run dev`
+
+#### Sublime Text
+- **Pros**: Lightweight, fast, good plugin ecosystem
+- **Cons**: Limited built-in features, requires plugins for full functionality
+- **Setup**: Install Package Control, add TypeScript and React plugins
+
+#### Atom (Deprecated)
+- **Note**: GitHub discontinued Atom in 2022, migrate to VS Code
+
+### Recommended Development Workflow
+
+#### For Beginners
+1. **Use VS Code** - Best balance of features and ease of use
+2. **Install recommended extensions** - Essential for React/TypeScript development
+3. **Use integrated terminal** - Keep everything in one window
+4. **Enable auto-save** - Prevent losing changes
+
+#### For Eclipse Users
+1. **Start with Eclipse** if you're comfortable with it
+2. **Consider VS Code migration** for better modern web development experience
+3. **Use external terminal** if Eclipse terminal is slow
+4. **Keep both IDEs** - Use Eclipse for Java, VS Code for web development
+
+### Development Commands Reference
+
+\`\`\`bash
+# Essential commands for both IDEs
+npm install          # Install dependencies
+npm run dev         # Start development server
+npm run build       # Build for production
+npm run start       # Start production server
+npm run lint        # Run ESLint
+npm run type-check  # TypeScript type checking
+
+# Useful development commands
+npm run clean       # Clean build artifacts
+npm run analyze     # Analyze bundle size
+npm test           # Run tests (if configured)
+\`\`\`
+
 ## 📞 Support & Troubleshooting
 
 ### Common Issues
-1. **OTP Not Received**: Check email spam folder and SMTP configuration
+1. **Login Issues**: Check username/password and ensure account exists
 2. **Database Connection**: Check Supabase credentials and network access
 3. **Admin Operations**: Ensure service role key is configured correctly
-4. **AI Features**: Verify Groq API key and rate limits
-5. **Authentication**: Ensure redirect URLs match deployment domain
-6. **Build Errors**: Check Node.js version compatibility (18+)
+4. **Authentication**: Ensure redirect URLs match deployment domain
+5. **Build Errors**: Check Node.js version compatibility (18+)
+6. **Session Timeout**: Sessions expire after 8 minutes of inactivity
 
 ### Getting Help
 - **Documentation**: Refer to this README and code comments
@@ -485,5 +561,6 @@ POSTGRES_HOST=                    # Database host
 - Check browser console for client-side errors
 - Monitor Supabase logs for database issues
 - Use Vercel Analytics for production monitoring
+- Admin can manage users and confirm emails through the dashboard
 
 *Last Updated: January 2025*

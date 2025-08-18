@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { enhancedSignUp } from "@/lib/actions"
-import { OTPVerification } from "@/components/otp-verification"
 
 export function EnhancedSignUpForm() {
   const router = useRouter()
@@ -24,8 +23,6 @@ export function EnhancedSignUpForm() {
     password: "",
     confirmPassword: "",
   })
-  const [showOTPVerification, setShowOTPVerification] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
 
   const handlePasswordChange = (field: "password" | "confirmPassword", value: string) => {
     const newFormData = { ...formData, [field]: value }
@@ -49,7 +46,6 @@ export function EnhancedSignUpForm() {
 
     const password = formData.get("password") as string
     const confirmPassword = formData.get("confirmPassword") as string
-    const email = formData.get("email") as string
 
     if (password !== confirmPassword) {
       setFieldErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }))
@@ -71,60 +67,19 @@ export function EnhancedSignUpForm() {
       } else {
         setMessage({ type: "error", text: result.error })
       }
-    } else if (result?.requiresOTP) {
-      setUserEmail(email)
-      setShowOTPVerification(true)
     } else {
       setMessage({
         type: "success",
-        text: "Account created successfully! Please check your email to verify your account.",
+        text: result?.success || "Account created successfully! You can now log in with your credentials.",
       })
+
+      // Redirect to login page after 2 seconds
+      setTimeout(() => {
+        router.push("/auth/login?message=Account created successfully! Please log in.")
+      }, 2000)
     }
 
     setIsLoading(false)
-  }
-
-  const handleVerificationSuccess = async () => {
-    // Auto-login the user after successful verification
-    try {
-      const response = await fetch("/api/auth/auto-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail }),
-      })
-
-      if (response.ok) {
-        router.push("/dashboard")
-      } else {
-        router.push("/auth/login?message=verified")
-      }
-    } catch (error) {
-      router.push("/auth/login?message=verified")
-    }
-  }
-
-  const handleResendOTP = async () => {
-    const response = await fetch("/api/auth/send-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: userEmail }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Failed to resend OTP")
-    }
-  }
-
-  if (showOTPVerification) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <OTPVerification
-          email={userEmail}
-          onVerificationSuccess={handleVerificationSuccess}
-          onResendOTP={handleResendOTP}
-        />
-      </div>
-    )
   }
 
   return (

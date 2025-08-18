@@ -24,6 +24,7 @@ import {
   RefreshCw,
   Database,
   UserX,
+  Mail,
 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { logout } from "@/lib/actions"
@@ -69,6 +70,7 @@ export default function AdminDashboard() {
   const [filterPeriod, setFilterPeriod] = useState("30")
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null)
   const [clearingUsers, setClearingUsers] = useState(false)
+  const [confirmingEmail, setConfirmingEmail] = useState<string | null>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -182,6 +184,39 @@ export default function AdminDashboard() {
       setUsers(users.filter((user) => user.id !== userId))
     } catch (error) {
       console.error("Error deleting user:", error)
+    }
+  }
+
+  const confirmUserEmail = async (email: string) => {
+    setConfirmingEmail(email)
+    console.log("[v0] Confirming email for user:", email)
+
+    try {
+      const response = await fetch("/api/admin/confirm-user-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        console.log("[v0] Email confirmed successfully for:", email)
+        alert(`Email confirmed successfully for ${email}. User can now login.`)
+
+        // Refresh the users list
+        await fetchUsers()
+      } else {
+        console.error("[v0] Email confirmation failed:", result.error)
+        alert(`Failed to confirm email: ${result.error}`)
+      }
+    } catch (error) {
+      console.error("[v0] Error confirming email:", error)
+      alert("Failed to confirm email. Please try again.")
+    } finally {
+      setConfirmingEmail(null)
     }
   }
 
@@ -604,6 +639,17 @@ export default function AdminDashboard() {
                         >
                           {user.is_admin ? "Admin" : "User"}
                         </Badge>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => confirmUserEmail(user.email)}
+                          disabled={confirmingEmail === user.email}
+                          className="border-green-600/50 text-green-200 hover:bg-green-700/50"
+                          title="Confirm user email for login"
+                        >
+                          <Mail className="h-4 w-4" />
+                        </Button>
 
                         <Button
                           size="sm"

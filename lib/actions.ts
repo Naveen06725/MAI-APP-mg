@@ -244,47 +244,57 @@ export async function enhancedSignUp(formData: FormData) {
     },
   })
 
-  const { data: existingUsername } = await supabaseAdmin
-    .from("profiles")
-    .select("username")
-    .eq("username", username)
-    .maybeSingle()
-
-  if (existingUsername) {
-    return { error: "Username already exists. Please choose a different username." }
-  }
-
-  const { data: existingEmail } = await supabaseAdmin.from("profiles").select("email").eq("email", email).maybeSingle()
-
-  if (existingEmail) {
-    return { error: "Email already registered. Please use a different email address." }
-  }
-
-  const { data: existingMobile } = await supabaseAdmin
-    .from("profiles")
-    .select("mobile_number")
-    .eq("mobile_number", mobileNumber)
-    .maybeSingle()
-
-  if (existingMobile) {
-    return { error: "Mobile number already registered. Please use a different mobile number." }
-  }
-
   try {
-    const { data: existingAuthUser } = await supabaseAdmin.auth.admin.listUsers()
-    const userWithEmail = existingAuthUser.users.find((user) => user.email === email)
+    const { data: existingAuthUsers } = await supabaseAdmin.auth.admin.listUsers()
+    const userWithEmail = existingAuthUsers.users.find((user) => user.email === email)
+    console.log("[v0] Existing auth user with email:", userWithEmail ? "Found" : "Not found")
 
     if (userWithEmail) {
-      console.log("[v0] Found existing auth user, deleting:", userWithEmail.id)
-      await supabaseAdmin.auth.admin.deleteUser(userWithEmail.id)
-      // Also delete any existing profile
-      await supabaseAdmin.from("profiles").delete().eq("id", userWithEmail.id)
+      return { error: "Email already registered. Please use a different email address." }
     }
+
+    const { data: userWithUsername, error: usernameCheckError } = await supabaseAdmin
+      .from("profiles")
+      .select("username, email")
+      .eq("username", username)
+      .maybeSingle()
+
+    console.log("[v0] Username check result:", { userWithUsername, usernameCheckError })
+
+    if (usernameCheckError && usernameCheckError.code !== "PGRST116") {
+      console.log("[v0] Username check error:", usernameCheckError)
+      return { error: "Error checking username availability. Please try again." }
+    }
+
+    if (userWithUsername && userWithUsername.username) {
+      console.log("[v0] Username already exists:", userWithUsername)
+      return { error: "Username already exists. Please choose a different username." }
+    }
+
+    const { data: existingMobile, error: mobileCheckError } = await supabaseAdmin
+      .from("profiles")
+      .select("mobile_number")
+      .eq("mobile_number", mobileNumber)
+      .maybeSingle()
+
+    console.log("[v0] Mobile check result:", { existingMobile, mobileCheckError })
+
+    if (mobileCheckError && mobileCheckError.code !== "PGRST116") {
+      console.log("[v0] Mobile check error:", mobileCheckError)
+      return { error: "Error checking mobile number availability. Please try again." }
+    }
+
+    if (existingMobile && existingMobile.mobile_number) {
+      console.log("[v0] Mobile number already exists:", existingMobile)
+      return { error: "Mobile number already registered. Please use a different mobile number." }
+    }
+
+    console.log("[v0] All validation checks passed, creating auth user")
 
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
-      email_confirm: false, // We'll handle verification with OTP
+      email_confirm: true,
       user_metadata: {
         full_name: `${firstName} ${lastName}`,
         username: username,
@@ -334,87 +344,14 @@ export async function enhancedSignUp(formData: FormData) {
     }
 
     console.log("[v0] Profile created successfully:", insertedProfile)
-
-    await supabaseAdmin.from("admin_stats").delete().eq("stat_type", "otp_verification").eq("stat_value->email", email)
-
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-
-    const { error: otpError } = await supabaseAdmin.from("admin_stats").insert({
-      stat_type: "otp_verification",
-      stat_value: {
-        email,
-        user_id: authData.user.id,
-        otp_code: otpCode,
-        expires_at: expiresAt,
-        is_used: false,
-      },
-    })
-
-    if (otpError) {
-      await supabaseAdmin.from("profiles").delete().eq("id", authData.user.id)
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
-      return { error: "Failed to prepare verification. Please try again." }
-    }
-
-    console.log(`[v0] OTP for ${email}: ${otpCode}`)
-    console.log("[v0] OTP generated successfully for email:", email)
     console.log("[v0] SignUp completed successfully for username:", username)
 
     return {
-      success: "Account created successfully! Please check your email for the verification code.",
-      requiresOTP: true,
-      email: email,
-      otp: otpCode,
+      success: "Account created successfully! You can now log in with your credentials.",
     }
   } catch (error: any) {
     console.log("[v0] Unexpected error during signup:", error.message)
     return { error: "Account creation failed. Please try again." }
-  }
-}
-
-export async function autoLoginAfterVerification(email: string) {
-  console.log("[v0] Auto-login after verification for email:", email)
-
-  const { createClient } = await import("@supabase/supabase-js")
-  const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  })
-
-  try {
-    const { data: otpRecord, error: otpError } = await supabaseAdmin
-      .from("admin_stats")
-      .select("stat_value")
-      .eq("stat_type", "otp_verification")
-      .eq("stat_value->email", email)
-      .single()
-
-    if (otpError || !otpRecord) {
-      return { error: "Verification record not found" }
-    }
-
-    const userId = otpRecord.stat_value.user_id
-
-    const { error: confirmError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
-      email_confirm: true,
-    })
-
-    if (confirmError) {
-      console.log("[v0] Email confirmation failed:", confirmError.message)
-      return { error: "Failed to confirm email" }
-    }
-
-    // Clean up OTP record
-    await supabaseAdmin.from("admin_stats").delete().eq("stat_type", "otp_verification").eq("stat_value->email", email)
-
-    console.log("[v0] Email confirmed successfully for user:", userId)
-    return { success: "Email verified successfully", userId: userId }
-  } catch (error: any) {
-    console.log("[v0] Auto-login error:", error.message)
-    return { error: "Verification failed. Please try again." }
   }
 }
 
@@ -484,25 +421,14 @@ export async function enhancedSignIn(formData: FormData) {
   if (error) {
     console.log("[v0] Authentication failed:", error.message)
 
-    if (error.message.includes("Email not confirmed")) {
-      return {
-        error: "Please verify your email address before logging in. Check your inbox for the verification email.",
-      }
-    }
-
     if (error.message.includes("Invalid login credentials")) {
       return { error: "Invalid password. Please check your password and try again." }
-    }
-
-    if (error.message.includes("Email link is invalid or has expired")) {
-      return { error: "Email verification link has expired. Please request a new verification email." }
     }
 
     if (error.message.includes("Too many requests")) {
       return { error: "Too many login attempts. Please wait a few minutes before trying again." }
     }
 
-    // Generic fallback for other auth errors
     return { error: `Authentication failed: ${error.message}` }
   }
 
