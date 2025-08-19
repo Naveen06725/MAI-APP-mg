@@ -73,9 +73,9 @@ export function EnhancedSignUpForm() {
         text: result?.success || "Account created successfully! You can now log in with your credentials.",
       })
 
-      // Redirect to login page after 2 seconds
+      // Redirect to dashboard after 2 seconds for a seamless flow
       setTimeout(() => {
-        router.push("/auth/login?message=Account created successfully! Please log in.")
+        router.push("/dashboard")
       }, 2000)
     }
 
