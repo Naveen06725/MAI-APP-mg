@@ -1,3 +1,5 @@
+// File: naveen06725/mai-app-mg/MAI-APP-mg-b71172d5f59dc7679d23faad29cf7ce2d9b59fbb/components/enhanced-sign-up-form.tsx
+
 "use client"
 
 import { useState } from "react"
