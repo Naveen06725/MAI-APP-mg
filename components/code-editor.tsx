@@ -175,11 +175,43 @@ export function CodeEditor({ user, initialProjects }: CodeEditorProps) {
   const runCode = () => {
     if (activeProject?.language === "javascript" || activeProject?.language === "typescript") {
       try {
-        // Create a safe execution environment
-        const result = eval(code)
-        console.log("[MAI Code Runner]", result)
+        // Create a new iframe for a safe execution environment
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // Get the iframe's window and document
+        const iframeWindow = iframe.contentWindow;
+        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+
+        if (iframeWindow && iframeDoc) {
+            // Hijack console.log and console.error to post messages back
+            iframeDoc.open();
+            iframeDoc.write('<script>window.onerror = (msg, src, l) => parent.postMessage({ type: "error", message: msg }); console.log = (...args) => parent.postMessage({ type: "log", message: args.join(" ") }); console.error = (...args) => parent.postMessage({ type: "error", message: args.join(" ") });</script>');
+            iframeDoc.write('<script>' + code + '</script>');
+            iframeDoc.close();
+
+            // Listen for messages from the iframe
+            const handleMessage = (event: MessageEvent) => {
+                if (event.source === iframeWindow) {
+                    const { type, message } = event.data;
+                    if (type === "log") {
+                        console.log("[MAI Code Runner]", message);
+                    } else if (type === "error") {
+                        console.error("[MAI Code Runner] Error:", message);
+                    }
+                    window.removeEventListener('message', handleMessage);
+                    iframe.remove();
+                }
+            };
+            window.addEventListener('message', handleMessage);
+        } else {
+            console.error("[MAI Code Runner] Failed to create sandboxed environment.");
+            iframe.remove();
+        }
+
       } catch (error) {
-        console.error("[MAI Code Runner] Error:", error)
+        console.error("[MAI Code Runner] Execution Error:", error)
       }
     }
   }
