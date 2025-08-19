@@ -285,7 +285,7 @@ export async function enhancedSignUp(formData: FormData) {
     }
 
     if (existingMobile && existingMobile.mobile_number) {
-      console.log("[v0] Mobile number already exists:", existingMobile)
+      console.log("[v0] Mobile number already registered. Please use a different mobile number." )
       return { error: "Mobile number already registered. Please use a different mobile number." }
     }
 
@@ -368,26 +368,6 @@ export async function enhancedSignIn(formData: FormData) {
     return { error: "Username and password are required" }
   }
 
-  if (username.toLowerCase() === "admin" && password === "Happy@152624") {
-    console.log("[v0] Hardcoded admin login successful")
-
-    const cookieStore = cookies()
-    const sessionData = {
-      user: "admin",
-      lastActivity: Date.now(),
-      isAdmin: true,
-    }
-
-    cookieStore.set("admin-session", JSON.stringify(sessionData), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 8 * 60, // 8 minutes
-    })
-
-    return { success: "Admin login successful", isAdmin: true, redirect: "/dashboard" }
-  }
-
   console.log("[v0] Looking up user profile for username:", username)
 
   const { createClient } = await import("@supabase/supabase-js")
@@ -400,7 +380,7 @@ export async function enhancedSignIn(formData: FormData) {
 
   const { data: profile, error: profileError } = await supabaseAdmin
     .from("profiles")
-    .select("email, username, is_admin, first_name, last_name")
+    .select("id, email, username, is_admin, first_name, last_name")
     .eq("username", username)
     .single()
 
@@ -430,6 +410,23 @@ export async function enhancedSignIn(formData: FormData) {
     }
 
     return { error: `Authentication failed: ${error.message}` }
+  }
+
+  // Create admin session cookie if the user is an admin
+  if (profile.is_admin) {
+    const cookieStore = cookies()
+    const sessionData = {
+      user: profile.username,
+      lastActivity: Date.now(),
+      isAdmin: true,
+    }
+    cookieStore.set("admin-session", JSON.stringify(sessionData), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 8 * 60, // 8 minutes
+    })
+    console.log("[v0] Admin login successful")
   }
 
   console.log("[v0] Authentication successful for user:", profile.username)
